@@ -17,6 +17,7 @@ const CreateEventModal = ({ isOpen, onClose, onCreateEvent }) => {
     privacy: 'public',
     image: ''
   });
+  const [error, setError] = useState('');
 
   const categoryOptions = [
     { value: 'sports', label: 'Sports & Fitness' },
@@ -54,34 +55,47 @@ const CreateEventModal = ({ isOpen, onClose, onCreateEvent }) => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setError('');
+    if (!eventData.title || !eventData.date || !eventData.time || !eventData.location || !eventData.maxAttendees || !eventData.category || !eventData.privacy) {
+      setError('Please fill in all required fields.');
+      return;
+    }
     const newEvent = {
       ...eventData,
-      id: Date.now(),
       date: `${eventData.date}T${eventData.time}`,
-      attendeeCount: 1,
-      attendees: [{
-        name: 'You',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-      }],
-      rsvpStatus: 'attending',
-      isHost: true
+      createdBy: "661f2b7e2c8b4e1a2c123456" // Replace with your real user _id
     };
-    
-    onCreateEvent(newEvent);
-    onClose();
-    setCurrentStep(1);
-    setEventData({
-      title: '',
-      description: '',
-      category: '',
-      date: '',
-      time: '',
-      location: '',
-      maxAttendees: '',
-      privacy: 'public',
-      image: ''
-    });
+    try {
+      const response = await fetch('http://localhost:3000/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEvent)
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        setError('Failed to create event: ' + errorText);
+        throw new Error('Failed to create event: ' + errorText);
+      }
+      const savedEvent = await response.json();
+      onCreateEvent(savedEvent); // Update UI
+      onClose();
+      setCurrentStep(1);
+      setEventData({
+        title: '',
+        description: '',
+        category: '',
+        date: '',
+        time: '',
+        location: '',
+        maxAttendees: '',
+        privacy: 'public',
+        image: ''
+      });
+    } catch (err) {
+      setError('Error creating event: ' + err.message);
+      console.error(err);
+    }
   };
 
   const isStepValid = () => {
@@ -245,7 +259,6 @@ const CreateEventModal = ({ isOpen, onClose, onCreateEvent }) => {
           >
             {currentStep === 1 ? 'Cancel' : 'Previous'}
           </Button>
-          
           <Button
             onClick={currentStep === 3 ? handleSubmit : handleNext}
             disabled={!isStepValid()}
@@ -253,6 +266,7 @@ const CreateEventModal = ({ isOpen, onClose, onCreateEvent }) => {
             {currentStep === 3 ? 'Create Event' : 'Next'}
           </Button>
         </div>
+        {error && <div className="text-red-500 text-sm px-4 pb-2">{error}</div>}
       </div>
     </div>
   );

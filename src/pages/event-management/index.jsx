@@ -9,6 +9,7 @@ import CreateEventModal from './components/CreateEventModal';
 import EventDetailModal from './components/EventDetailModal';
 import EventTabs from './components/EventTabs';
 import MapView from './components/MapView';
+import { io } from 'socket.io-client';
 
 const EventManagement = () => {
   const navigate = useNavigate();
@@ -30,143 +31,15 @@ const EventManagement = () => {
     dateTo: ''
   });
 
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "Weekend Basketball Pickup Game",
-      description: `Join us for a friendly basketball game at Central Park! We're looking for players of all skill levels to come together for some competitive fun. Bring your A-game and get ready to make some new friends while breaking a sweat.\n\nWhat to bring:\n• Basketball shoes\n• Water bottle\n• Positive attitude\n\nWe'll provide the basketball and good vibes!`,
-      category: "Sports & Fitness",
-      date: "2025-07-12T10:00",
-      location: "Central Park Basketball Courts, New York, NY",
-      maxAttendees: 12,
-      attendeeCount: 8,
-      image: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Mike Johnson", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "Alex Chen", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" },
-        { name: "David Rodriguez", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" },
-        { name: "James Wilson", avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: null,
-      host: {
-        name: "Mike Johnson",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2023"
-      },
-      hostId: 1
-    },
-    {
-      id: 2,
-      title: "Gaming Night - FIFA Tournament",
-      description: `Calling all FIFA enthusiasts! Join us for an epic tournament night with prizes, snacks, and bragging rights on the line. Whether you're a seasoned pro or just love the beautiful game, come compete in our friendly tournament.\n\nTournament format:\n• Single elimination bracket\n• 10-minute matches\n• Winner takes all prize pool\n\nSnacks and drinks provided!`,
-      category: "Gaming",
-      date: "2025-07-13T19:00",
-      location: "GameHub Lounge, 123 Main St, Brooklyn, NY",
-      maxAttendees: 16,
-      attendeeCount: 12,
-      image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Carlos Martinez", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "Ryan Thompson", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" },
-        { name: "Kevin Lee", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: "attending",
-      host: {
-        name: "Carlos Martinez",
-        avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2022"
-      },
-      hostId: 2
-    },
-    {
-      id: 3,
-      title: "Hiking Adventure - Bear Mountain",
-      description: `Escape the city and join us for a challenging but rewarding hike up Bear Mountain! Perfect for intermediate hikers looking to connect with nature and meet fellow outdoor enthusiasts.\n\nTrail details:\n• 5.2 miles round trip\n• Moderate difficulty\n• Scenic views at the summit\n• Estimated 3-4 hours\n\nBring plenty of water, snacks, and hiking boots!`,
-      category: "Outdoor Adventures",
-      date: "2025-07-14T08:00",
-      location: "Bear Mountain State Park, NY",
-      maxAttendees: 10,
-      attendeeCount: 6,
-      image: "https://images.unsplash.com/photo-1551632811-561732d1e306?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Tom Anderson", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "Steve Miller", avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: "maybe",
-      host: {
-        name: "Tom Anderson",
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2024"
-      },
-      hostId: 3
-    },
-    {
-      id: 4,
-      title: "Craft Beer Tasting & Networking",
-      description: `Join fellow beer enthusiasts for an evening of craft beer tasting and professional networking. Sample local brews while making meaningful connections in a relaxed atmosphere.\n\nWhat's included:\n• 6 craft beer samples\n• Appetizer platters\n• Networking activities\n• Beer education session\n\nPerfect for professionals looking to expand their network!`,
-      category: "Food & Drinks",
-      date: "2025-07-15T18:30",
-      location: "Brooklyn Brewery, 79 N 11th St, Brooklyn, NY",
-      maxAttendees: 25,
-      attendeeCount: 18,
-      image: "https://images.unsplash.com/photo-1436076863939-06870fe779c2?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Mark Davis", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "John Smith", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: null,
-      host: {
-        name: "Mark Davis",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2023"
-      },
-      hostId: 4
-    },
-    {
-      id: 5,
-      title: "Tech Meetup - AI & Machine Learning",
-      description: `Dive deep into the world of AI and Machine Learning with fellow tech enthusiasts! This meetup features presentations, hands-on workshops, and networking opportunities for developers and tech professionals.\n\nAgenda:\n• AI trends presentation\n• ML workshop session\n• Q&A with industry experts\n• Networking & pizza\n\nBring your laptop for the workshop!`,
-      category: "Technology",
-      date: "2025-07-16T19:00",
-      location: "TechHub NYC, 902 Broadway, New York, NY",
-      maxAttendees: 30,
-      attendeeCount: 22,
-      image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Sarah Kim", avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "Daniel Park", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: "attending",
-      host: {
-        name: "Sarah Kim",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2022"
-      },
-      hostId: 5
-    },
-    {
-      id: 6,
-      title: "Live Music Jam Session",
-      description: `Musicians and music lovers unite! Join us for an open jam session where you can showcase your talents, collaborate with other musicians, or simply enjoy great live music.\n\nWhat to expect:\n• Open mic opportunities\n• Instrument sharing\n• Collaborative performances\n• Music networking\n\nBring your instrument or just your love for music!`,
-      category: "Music & Arts",
-      date: "2025-07-17T20:00",
-      location: "The Music Hall, 456 Music Ave, Manhattan, NY",
-      maxAttendees: 20,
-      attendeeCount: 14,
-      image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
-      attendees: [
-        { name: "Jake Williams", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", isHost: true },
-        { name: "Chris Brown", avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=150&h=150&fit=crop&crop=face" }
-      ],
-      rsvpStatus: null,
-      host: {
-        name: "Jake Williams",
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-        memberSince: "2023"
-      },
-      hostId: 6
-    }
-  ]);
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    // Fetch events from backend on mount
+    fetch('http://localhost:5000/events')
+      .then(res => res.json())
+      .then(data => setEvents(data))
+      .catch(err => console.error('Failed to fetch events', err));
+  }, []);
 
   const [myEvents, setMyEvents] = useState([
     {
@@ -220,6 +93,26 @@ const EventManagement = () => {
     }
   ]);
 
+  useEffect(() => {
+    const socket = io('http://localhost:3000');
+
+    socket.on('event:created', (event) => {
+      setEvents((prev) => [...prev, event]);
+    });
+
+    socket.on('event:updated', (updatedEvent) => {
+      setEvents((prev) => prev.map(ev => ev._id === updatedEvent._id ? updatedEvent : ev));
+    });
+
+    socket.on('event:deleted', ({ _id }) => {
+      setEvents((prev) => prev.filter(ev => ev._id !== _id));
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   const getFilteredEvents = () => {
     let eventsToFilter = [];
     
@@ -267,10 +160,7 @@ const EventManagement = () => {
   };
 
   const handleCreateEvent = (newEvent) => {
-    if (newEvent.privacy === 'public') {
-      setEvents(prev => [newEvent, ...prev]);
-    }
-    setHostingEvents(prev => [newEvent, ...prev]);
+    // No need to update state here; real-time Socket.IO and backend fetch will handle it
   };
 
   const handleViewEventDetails = (event) => {
